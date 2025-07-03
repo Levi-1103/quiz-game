@@ -1,43 +1,41 @@
 <script lang="ts">
-  import GetQuizzes from "./lib/GetQuizzes.svelte";
   import QuizCard from "./lib/QuizCard.svelte";
+    import { NetService } from "./service/net";
 
+  let netService = new NetService();
+  netService.connect();
+  netService.onPacket((packet:any)=> {
+    console.log(packet)
+  });
   let quizzes: { _id: string; name: string }[] = [];
   let code = "";
   let msg = "";
 
   async function getQuizzes() {
-    let response = await fetch("http://localhost:3000/api/quizzes");
+    const response = await fetch("http://localhost:3000/api/quizzes");
     if (!response.ok) {
       console.error(response);
       return;
     }
-    let json = await response.json();
+    const json = await response.json();
 
     quizzes = json;
     console.log(json);
   }
 
   function connect() {
-    let websocket = new WebSocket("ws://localhost:3000/ws");
-    websocket.onopen = () => {
-      console.log("connection opened");
-      websocket.send(`join: ${code}`);
-    };
-    websocket.onmessage = (event) => {
-      console.log(event.data);
-    };
+    netService.sendPacket({
+      id:0,
+      code:"1234",
+      name:"testSlop"
+    });
   }
 
   function hostQuiz(quiz) {
-    let websocket = new WebSocket("ws://localhost:3000/ws");
-    websocket.onopen = () => {
-      console.log("connection opened");
-      websocket.send(`host: ${quiz.id}`);
-    };
-    websocket.onmessage = (event) => {
-      msg = event.data;
-    };
+     netService.sendPacket({
+      id:1,
+      quizId:quiz.id,
+    });
   }
 </script>
 
@@ -60,7 +58,7 @@
   </div>
 
   {#each quizzes as quiz}
-    <QuizCard {quiz} host={() => hostQuiz(quiz)} />
+    <QuizCard quiz={quiz} host={() => hostQuiz(quiz)} />
   {/each}
 </main>
 
