@@ -28,13 +28,13 @@
   <h1>Vite + Svelte</h1>
 
   <button
-    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+    class="btn preset-filled"
     onclick={getQuizzes}
     >Get Quizzes
   </button>
 
   <button
-    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+    class="btn preset-filled"
     onclick={connect}
     >Connect to Server
   </button>
