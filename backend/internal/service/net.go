@@ -2,7 +2,9 @@ package service
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gofiber/contrib/websocket"
 )
@@ -10,6 +12,7 @@ import (
 type NetService struct {
 	quizService *QuizService
 	host        *websocket.Conn
+	tick        int
 }
 
 func Net(quizService *QuizService) *NetService {
@@ -29,6 +32,15 @@ func (c *NetService) OnIncomingMessage(con *websocket.Conn, mt int, msg []byte) 
 		{
 			fmt.Println("host quiz:", argument)
 			c.host = con
+			c.tick = 100
+			go func() {
+				for {
+					c.tick--
+					c.host.WriteMessage(websocket.TextMessage, []byte(strconv.Itoa(c.tick)))
+					time.Sleep(time.Second)
+				}
+			}()
+
 			break
 		}
 	case "join":
