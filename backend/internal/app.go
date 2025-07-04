@@ -48,6 +48,8 @@ func (a *App) setupServer() {
 
 	log.Fatal(app.Listen(":3000"))
 	a.server = app
+
+	// tests
 }
 
 func (a *App) setupDB() {
