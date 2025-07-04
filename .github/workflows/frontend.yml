@@ -1,5 +1,4 @@
-name: Frontend CI with pnpm
-
+name: Frontend CI
 on:
   push:
     paths:
