@@ -1,15 +1,15 @@
 <script lang="ts">
   import QuizCard from "./lib/QuizCard.svelte";
-    import { NetService } from "./service/net";
+  import { NetService } from "./service/net";
 
-  let netService = new NetService();
+  const netService = new NetService();
   netService.connect();
-  netService.onPacket((packet:any)=> {
-    console.log(packet)
+  netService.onPacket((packet: any) => {
+    console.log(packet);
   });
   let quizzes: { _id: string; name: string }[] = [];
   let code = "";
-  let msg = "";
+  const msg = "";
 
   async function getQuizzes() {
     const response = await fetch("http://localhost:3000/api/quizzes");
@@ -25,16 +25,16 @@
 
   function connect() {
     netService.sendPacket({
-      id:0,
-      code:"1234",
-      name:"testSlop"
+      id: 0,
+      code: "1234",
+      name: "testSlop",
     });
   }
 
   function hostQuiz(quiz) {
-     netService.sendPacket({
-      id:1,
-      quizId:quiz.id,
+    netService.sendPacket({
+      id: 1,
+      quizId: quiz.id,
     });
   }
 </script>
