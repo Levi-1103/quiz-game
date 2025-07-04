@@ -5,9 +5,10 @@
   const netService = new NetService();
   netService.connect();
   netService.onPacket((packet: any) => {
+    // eslint-disable-next-line no-console
     console.log(packet);
   });
-  
+
   let quizzes: { _id: string; name: string }[] = [];
   let code = "";
   const msg = "";
@@ -21,6 +22,7 @@
     const json = await response.json();
 
     quizzes = json;
+    // eslint-disable-next-line no-console
     console.log(json);
   }
 

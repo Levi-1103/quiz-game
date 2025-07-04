@@ -8,6 +8,7 @@ export class NetService {
   connect() {
     this.websocket = new WebSocket("ws://localhost:3000/ws");
     this.websocket.onopen = () => {
+      // eslint-disable-next-line no-console
       console.log("connection opened");
     };
 
@@ -31,7 +32,7 @@ export class NetService {
   sendPacket(packet: any) {
     const packetId = packet.id;
     const packetData = JSON.stringify(packet, (key, value) =>
-      key == "id" ? undefined : value);
+      key === "id" ? undefined : value);
 
     const packetIdArray = new Uint8Array([packetId]);
     const packetDataArray = this.textEncoder.encode(packetData);

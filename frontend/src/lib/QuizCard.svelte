@@ -1,5 +1,5 @@
 <script lang="ts">
-
+  /* eslint-disable import/no-mutable-exports */
   export let quiz: { _id: string; name: string };
 
   export let host;
