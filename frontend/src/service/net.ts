@@ -47,5 +47,5 @@ export class NetService {
 }
 
 export function hello() {
-    return "hello";
-  }
+  return "hello";
+}

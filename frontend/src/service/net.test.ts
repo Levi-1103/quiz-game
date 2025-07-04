@@ -1,11 +1,8 @@
-import { expect, test } from 'vitest';
-import { hello } from './net';
+import { expect, it } from "vitest";
+import { hello } from "./net";
 
+it("hello", () => {
+  const test = hello();
 
-
-test('Hello', () => {
-	let test = hello();
-
-	expect(test).toEqual("hello");
-
+  expect(test).toEqual("hello");
 });
