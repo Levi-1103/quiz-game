@@ -45,3 +45,7 @@ export class NetService {
     this.websocket.send(mergedArray);
   }
 }
+
+export function hello() {
+    return "hello";
+  }

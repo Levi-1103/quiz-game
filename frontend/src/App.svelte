@@ -13,6 +13,8 @@
   let code = "";
   const msg = "";
 
+
+
   async function getQuizzes() {
     const response = await fetch("http://localhost:3000/api/quizzes");
     if (!response.ok) {
