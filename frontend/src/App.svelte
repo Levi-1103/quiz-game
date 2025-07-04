@@ -43,6 +43,8 @@
 <main>
   <h1>Quiz App</h1>
 
+  <h1>Hello World</h1>
+
   <div class="flex gap-4 items-center p-2">
     <button class="btn preset-filled" onclick={getQuizzes}>Get Quizzes </button>
     <p>Message: {msg}</p>
