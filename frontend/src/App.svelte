@@ -7,6 +7,7 @@
   netService.onPacket((packet: any) => {
     console.log(packet);
   });
+  
   let quizzes: { _id: string; name: string }[] = [];
   let code = "";
   const msg = "";
