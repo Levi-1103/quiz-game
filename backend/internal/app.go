@@ -39,6 +39,10 @@ func (a *App) setupServer() {
 
 	quizController := controller.Quiz(a.quizService)
 
+	app.Get("/", func(c *fiber.Ctx) error {
+		return c.SendString("Hello, World!")
+	})
+
 	app.Get("/api/quizzes", quizController.GetQuizzes)
 
 	wsController := controller.Ws(a.netService)
