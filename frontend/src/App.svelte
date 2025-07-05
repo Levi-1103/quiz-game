@@ -1,18 +1,28 @@
 <script lang="ts">
   import QuizCard from "./lib/QuizCard.svelte";
-    import { PacketCode } from "./model/net";
+  import { PacketCode, type Packet } from "./model/net";
+  import type { QuizQuestion } from "./model/quiz";
   import { NetService } from "./service/net";
 
-  const netService = new NetService();
-  netService.connect();
-  netService.onPacket((packet: any) => {
-    // eslint-disable-next-line no-console
-    console.log(packet);
-  });
+  let currentQuestion: QuizQuestion | null = null;
 
   let quizzes: { _id: string; name: string }[] = [];
   let code = "";
   const msg = "";
+
+  const netService = new NetService();
+  netService.connect();
+  netService.onPacket((packet: Packet) => {
+    // eslint-disable-next-line no-console
+    console.log(packet);
+
+    switch (packet.code) {
+      case PacketCode.QuestionShow: {
+        currentQuestion = packet.data.question;
+        break;
+      }
+    }
+  });
 
   async function getQuizzes() {
     const response = await fetch("http://localhost:3000/api/quizzes");
@@ -32,19 +42,16 @@
       code: PacketCode.Connect,
       data: {
         name: "testSlop",
-      }
+      },
     });
   }
 
-  
-
   function hostQuiz(quiz) {
     netService.sendPacket({
-      code:PacketCode.Host,
+      code: PacketCode.Host,
       data: {
         quizId: quiz.id,
-      }
-      
+      },
     });
   }
 </script>
@@ -70,8 +77,20 @@
   </div>
 
   {#each quizzes as quiz}
-    <QuizCard quiz={quiz} host={() => hostQuiz(quiz)} />
+    <QuizCard {quiz} host={() => hostQuiz(quiz)} />
   {/each}
+
+  
+  {#if currentQuestion != null}
+  <div class="card p-4 m-2 preset-filled flex flex-col text-center gap-4">
+    <h2 class="text-lg p-2">{currentQuestion.name}</h2>
+    <div class="flex justify-around gap-4">
+    {#each currentQuestion.choices as choice}
+      <button class="btn preset-filled-secondary-50-950">{choice.name}</button>
+    {/each}
+    </div>
+    </div>
+  {/if}
 </main>
 
 <style>

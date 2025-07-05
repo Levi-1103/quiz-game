@@ -86,6 +86,12 @@ func (c *NetService) OnIncomingMessage(con *websocket.Conn, mt int, msg []byte) 
 						{
 							Name: "9",
 						},
+						{
+							Name: "8",
+						},
+						{
+							Name: "7",
+						},
 					},
 				},
 			})
