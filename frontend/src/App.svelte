@@ -8,6 +8,7 @@
 
   let quizzes: { _id: string; name: string }[] = [];
   let code = "";
+  let name = "";
   const msg = "";
 
   const netService = new NetService();
@@ -41,7 +42,8 @@
     netService.sendPacket({
       code: PacketCode.Connect,
       data: {
-        name: "testSlop",
+        name: name,
+        code: code
       },
     });
   }
@@ -72,6 +74,12 @@
       type="text"
       placeholder="Game Code"
       bind:value={code}
+    />
+    <input
+      class="input"
+      type="text"
+      placeholder="Player Name"
+      bind:value={name}
     />
     <button class="btn preset-filled" onclick={connect}>Join Game </button>
   </div>

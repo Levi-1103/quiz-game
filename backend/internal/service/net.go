@@ -2,22 +2,23 @@ package service
 
 import (
 	"backend/internal/entity"
+	"backend/internal/game"
 	"encoding/json"
 	"fmt"
-	"time"
 
 	"github.com/gofiber/contrib/websocket"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type NetService struct {
 	quizService *QuizService
-	host        *websocket.Conn
-	tick        int
+	games       []*game.Game
 }
 
 func Net(quizService *QuizService) *NetService {
 	return &NetService{
 		quizService: quizService,
+		games:       []*game.Game{},
 	}
 }
 
@@ -63,7 +64,11 @@ func (c *NetService) OnIncomingMessage(con *websocket.Conn, mt int, msg []byte) 
 			fmt.Println("Problem with packet")
 			return
 		}
-		fmt.Println(connectPacket.Name, "wants to join the game", connectPacket.Code)
+		game := c.getGameByCode(connectPacket.Code)
+		if game == nil {
+			return
+		}
+		game.OnPlayerJoin(connectPacket.Name, con)
 
 	case "host":
 
@@ -73,34 +78,65 @@ func (c *NetService) OnIncomingMessage(con *websocket.Conn, mt int, msg []byte) 
 			fmt.Println("Problem with packet")
 			return
 		}
-		fmt.Println("User wants to host quiz", hostGamePacket.QuizId)
-		go func() {
-			time.Sleep(time.Second * 2)
-			c.SendPacket(con, PacketQuestionShow, QuestionShowPacket{
-				Question: entity.QuizQuestion{
-					Name: "What is 2 + 2?",
-					Choices: []entity.QuizChoice{
-						{
-							Name: "4",
-						},
-						{
-							Name: "9",
-						},
-						{
-							Name: "8",
-						},
-						{
-							Name: "7",
-						},
-					},
-				},
-			})
-		}()
+
+		quizId, err := primitive.ObjectIDFromHex(hostGamePacket.QuizId)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		quiz, err := c.quizService.quizCollection.GetQuizById(quizId)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		if quiz == nil {
+			return
+		}
+
+		newGame := game.New(*quiz, con)
+
+		fmt.Println("User wants to host quiz", newGame.Code)
+
+		c.games = append(c.games, &newGame)
+
+		// go func() {
+		// 	time.Sleep(time.Second * 2)
+		// 	c.SendPacket(con, PacketQuestionShow, QuestionShowPacket{
+		// 		Question: entity.QuizQuestion{
+		// 			Name: "What is 2 + 2?",
+		// 			Choices: []entity.QuizChoice{
+		// 				{
+		// 					Name: "4",
+		// 				},
+		// 				{
+		// 					Name: "9",
+		// 				},
+		// 				{
+		// 					Name: "8",
+		// 				},
+		// 				{
+		// 					Name: "7",
+		// 				},
+		// 			},
+		// 		},
+		// 	})
+		// }()
 
 	default:
 		fmt.Println("Unknown packet type:", base.Type)
 
 	}
+}
+
+func (c *NetService) getGameByCode(code string) *game.Game {
+	for _, game := range c.games {
+		if game.Code == code {
+			return game
+		}
+	}
+	return nil
 }
 
 func (c *NetService) SendPacket(connection *websocket.Conn, code string, payload interface{}) error {

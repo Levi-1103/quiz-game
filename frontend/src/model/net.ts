@@ -8,6 +8,7 @@ export enum PacketCode {
 
 interface ConnectPacketData {
   name: string;
+  code: string;
 }
 
 interface HostGamePacketData {
