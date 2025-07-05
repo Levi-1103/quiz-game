@@ -1,4 +1,4 @@
-package game
+package service
 
 import (
 	"backend/internal/entity"
@@ -15,10 +15,21 @@ type Game struct {
 	Id      uuid.UUID
 	Quiz    entity.Quiz
 	Code    string
+	State   GameState
 	Players []Player
 
-	Host *websocket.Conn
+	Host       *websocket.Conn
+	netService *NetService
 }
+
+type GameState int
+
+const (
+	LobbyState GameState = iota
+	PlayState
+	RevealState
+	EndState
+)
 
 type Player struct {
 	Name       string
@@ -29,13 +40,16 @@ func generateCode() string {
 	return strconv.Itoa(100000 + rand.Intn(900000))
 }
 
-func New(quiz entity.Quiz, host *websocket.Conn) Game {
+func newGame(quiz entity.Quiz, host *websocket.Conn, netservice *NetService) Game {
 	return Game{
 		Id:      uuid.New(),
 		Quiz:    quiz,
 		Code:    generateCode(),
+		State:   LobbyState,
 		Players: []Player{},
-		Host:    host,
+
+		Host:       host,
+		netService: netservice,
 	}
 }
 
@@ -44,6 +58,10 @@ func (g *Game) OnPlayerJoin(name string, connection *websocket.Conn) {
 	g.Players = append(g.Players, Player{
 		Name:       name,
 		Connection: connection,
+	})
+
+	g.netService.SendPacket(connection, ChangeGameState, ChangeGameStatePacket{
+		State: g.State,
 	})
 }
 

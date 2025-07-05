@@ -2,7 +2,6 @@ package service
 
 import (
 	"backend/internal/entity"
-	"backend/internal/game"
 	"encoding/json"
 	"fmt"
 
@@ -12,13 +11,13 @@ import (
 
 type NetService struct {
 	quizService *QuizService
-	games       []*game.Game
+	games       []*Game
 }
 
 func Net(quizService *QuizService) *NetService {
 	return &NetService{
 		quizService: quizService,
-		games:       []*game.Game{},
+		games:       []*Game{},
 	}
 }
 
@@ -40,10 +39,15 @@ type QuestionShowPacket struct {
 	Question entity.QuizQuestion `json:"question"`
 }
 
+type ChangeGameStatePacket struct {
+	State GameState `json:"state"`
+}
+
 const (
 	PacketConnect      = "connect"
 	PacketHost         = "host"
 	PacketQuestionShow = "question"
+	ChangeGameState    = "state"
 )
 
 func (c *NetService) OnIncomingMessage(con *websocket.Conn, mt int, msg []byte) {
@@ -95,11 +99,14 @@ func (c *NetService) OnIncomingMessage(con *websocket.Conn, mt int, msg []byte) 
 			return
 		}
 
-		newGame := game.New(*quiz, con)
+		newGame := newGame(*quiz, con, c)
 
 		fmt.Println("User wants to host quiz", newGame.Code)
 
 		c.games = append(c.games, &newGame)
+		c.SendPacket(con, ChangeGameState, ChangeGameStatePacket{
+			State: LobbyState,
+		})
 
 		// go func() {
 		// 	time.Sleep(time.Second * 2)
@@ -130,7 +137,7 @@ func (c *NetService) OnIncomingMessage(con *websocket.Conn, mt int, msg []byte) 
 	}
 }
 
-func (c *NetService) getGameByCode(code string) *game.Game {
+func (c *NetService) getGameByCode(code string) *Game {
 	for _, game := range c.games {
 		if game.Code == code {
 			return game
