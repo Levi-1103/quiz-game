@@ -1,5 +1,6 @@
 <script lang="ts">
   import QuizCard from "./lib/QuizCard.svelte";
+    import { PacketCode } from "./model/net";
   import { NetService } from "./service/net";
 
   const netService = new NetService();
@@ -28,16 +29,22 @@
 
   function connect() {
     netService.sendPacket({
-      id: 0,
-      code: "1234",
-      name: "testSlop",
+      code: PacketCode.Connect,
+      data: {
+        name: "testSlop",
+      }
     });
   }
 
+  
+
   function hostQuiz(quiz) {
     netService.sendPacket({
-      id: 1,
-      quizId: quiz.id,
+      code:PacketCode.Host,
+      data: {
+        quizId: quiz.id,
+      }
+      
     });
   }
 </script>

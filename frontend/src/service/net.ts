@@ -1,23 +1,19 @@
+/* eslint-disable no-console */
+import type { Packet } from "../model/net";
+
 export class NetService {
   private websocket!: WebSocket;
-  private textDecoder: TextDecoder = new TextDecoder();
-  private textEncoder: TextEncoder = new TextEncoder();
 
   private onPacketCallback?: (packet: any) => void;
 
   connect() {
     this.websocket = new WebSocket("ws://localhost:3000/ws");
     this.websocket.onopen = () => {
-      // eslint-disable-next-line no-console
       console.log("connection opened");
     };
 
     this.websocket.onmessage = async (event) => {
-      const arrayBuffer = await event.data.arrayBuffer();
-      const bytes = new Uint8Array(arrayBuffer);
-      const packetId = bytes[0];
-      const packet = JSON.parse(this.textDecoder.decode(bytes.subarray(1)));
-      packet.id = packetId;
+      const packet: Packet = JSON.parse(event.data);
 
       if (this.onPacketCallback) {
         this.onPacketCallback(packet);
@@ -29,20 +25,16 @@ export class NetService {
     this.onPacketCallback = callback;
   }
 
-  sendPacket(packet: any) {
-    const packetId = packet.id;
-    const packetData = JSON.stringify(packet, (key, value) =>
-      key === "id" ? undefined : value);
+  sendPacket(packet: Packet) {
+    const packetToSend = packet;
 
-    const packetIdArray = new Uint8Array([packetId]);
-    const packetDataArray = this.textEncoder.encode(packetData);
+    console.log(packetToSend);
 
-    const mergedArray = new Uint8Array(packetIdArray.length + packetDataArray.length);
+    const jsonPacket = JSON.stringify(packetToSend);
 
-    mergedArray.set(packetIdArray);
-    mergedArray.set(packetDataArray, packetIdArray.length);
+    console.log(jsonPacket);
 
-    this.websocket.send(mergedArray);
+    this.websocket.send(jsonPacket);
   }
 }
 
