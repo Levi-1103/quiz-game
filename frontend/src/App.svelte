@@ -12,6 +12,7 @@
   const msg = "";
   let state = -1;
   let host = false;
+  let tick = 0;
 
   const netService = new NetService();
   netService.connect();
@@ -30,8 +31,23 @@
         state = data.state;
         break;
       }
+      case PacketCode.StartGame: {
+        console.log("Start Game");
+        state = GameState.PlayState;
+        break;
+      }
+      case PacketCode.Tick: {
+        let data = packet.data;
+        tick = data.tick
+      }
     }
   });
+
+  function startGame() {
+    netService.sendPacket({
+      code: PacketCode.StartGame,
+    });
+  }
 
   async function getQuizzes() {
     const response = await fetch("http://localhost:3000/api/quizzes");
@@ -97,28 +113,35 @@
     {#each quizzes as quiz}
       <QuizCard {quiz} host={() => hostQuiz(quiz)} />
     {/each}
-
-    {#if currentQuestion != null}
-      <div class="card p-4 m-2 preset-filled flex flex-col text-center gap-4">
-        <h2 class="text-lg p-2">{currentQuestion.name}</h2>
-        <div class="flex justify-around gap-4">
-          {#each currentQuestion.choices as choice}
-            <button class="btn preset-filled-secondary-50-950"
-              >{choice.name}</button
-            >
-          {/each}
-        </div>
-      </div>
-    {/if}
-  {/if}
-
-  {#if state === GameState.LobbyState}
+  {:else if state === GameState.LobbyState}
     {#if host}
+      <button class="btn preset-filled" onclick={startGame}>StartGame</button>
+      <p>HOST</p>
       <p>lobby State</p>
-      {:else}
+    {:else}
+      <p>PLAYER</p>
       <p>you have successfully joined</p>
     {/if}
-
+  {:else if state === GameState.PlayState}
+    {#if host}
+    <p>HOST</p>
+      <p>Clock: {tick}</p>
+      {#if currentQuestion != null}
+        <div class="card p-4 m-2 preset-filled flex flex-col text-center gap-4">
+          <h2 class="text-lg p-2">{currentQuestion.name}</h2>
+          <div class="flex justify-around gap-4">
+            {#each currentQuestion.choices as choice}
+              <div class="btn preset-filled-secondary-50-950">
+                {choice.name}
+              </div>
+            {/each}
+          </div>
+        </div>
+      {/if}
+    {:else}
+    <p>PLAYER</p>
+      <p>press correct answer</p>
+    {/if}
   {/if}
 </main>
 

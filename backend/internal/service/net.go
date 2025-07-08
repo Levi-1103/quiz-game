@@ -42,12 +42,20 @@ type QuestionShowPacket struct {
 type ChangeGameStatePacket struct {
 	State GameState `json:"state"`
 }
+type StartGamePacket struct {
+}
+
+type TickPacket struct {
+	Tick int `json:"tick"`
+}
 
 const (
-	PacketConnect      = "connect"
-	PacketHost         = "host"
-	PacketQuestionShow = "question"
-	ChangeGameState    = "state"
+	PacketConnect         = "connect"
+	PacketHost            = "host"
+	PacketQuestionShow    = "question"
+	PacketChangeGameState = "state"
+	PacketStartGame       = "start"
+	PacketTick            = "tick"
 )
 
 func (c *NetService) OnIncomingMessage(con *websocket.Conn, mt int, msg []byte) {
@@ -104,9 +112,17 @@ func (c *NetService) OnIncomingMessage(con *websocket.Conn, mt int, msg []byte) 
 		fmt.Println("User wants to host quiz", newGame.Code)
 
 		c.games = append(c.games, &newGame)
-		c.SendPacket(con, ChangeGameState, ChangeGameStatePacket{
+		c.SendPacket(con, PacketChangeGameState, ChangeGameStatePacket{
 			State: LobbyState,
 		})
+
+	case "start":
+
+		game := c.getGameByHost(con)
+		if game == nil {
+			return
+		}
+		game.Start()
 
 		// go func() {
 		// 	time.Sleep(time.Second * 2)
@@ -135,6 +151,16 @@ func (c *NetService) OnIncomingMessage(con *websocket.Conn, mt int, msg []byte) 
 		fmt.Println("Unknown packet type:", base.Type)
 
 	}
+}
+
+func (c *NetService) getGameByHost(host *websocket.Conn) *Game {
+	for _, game := range c.games {
+		if game.Host == host {
+			return game
+		}
+	}
+
+	return nil
 }
 
 func (c *NetService) getGameByCode(code string) *Game {

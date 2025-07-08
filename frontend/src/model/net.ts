@@ -5,6 +5,8 @@ export enum PacketCode {
   Host = "host",
   QuestionShow = "question",
   ChangeGameState = "state",
+  StartGame = "start",
+  Tick = "tick",
 }
 
 export enum GameState {
@@ -31,8 +33,14 @@ interface ChangeGameStateData {
   state: GameState;
 }
 
+interface TickData {
+  tick: number;
+}
+
 export type Packet
   = | { code: PacketCode.Connect; data: ConnectPacketData }
     | { code: PacketCode.Host; data: HostGamePacketData }
     | { code: PacketCode.QuestionShow; data: QuestionShowPacketData }
-    | { code: PacketCode.ChangeGameState; data: ChangeGameStateData };
+    | { code: PacketCode.ChangeGameState; data: ChangeGameStateData }
+    | { code: PacketCode.StartGame }
+    | { code: PacketCode.Tick; data: TickData };
