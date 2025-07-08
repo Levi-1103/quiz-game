@@ -124,29 +124,6 @@ func (c *NetService) OnIncomingMessage(con *websocket.Conn, mt int, msg []byte) 
 		}
 		game.Start()
 
-		// go func() {
-		// 	time.Sleep(time.Second * 2)
-		// 	c.SendPacket(con, PacketQuestionShow, QuestionShowPacket{
-		// 		Question: entity.QuizQuestion{
-		// 			Name: "What is 2 + 2?",
-		// 			Choices: []entity.QuizChoice{
-		// 				{
-		// 					Name: "4",
-		// 				},
-		// 				{
-		// 					Name: "9",
-		// 				},
-		// 				{
-		// 					Name: "8",
-		// 				},
-		// 				{
-		// 					Name: "7",
-		// 				},
-		// 			},
-		// 		},
-		// 	})
-		// }()
-
 	default:
 		fmt.Println("Unknown packet type:", base.Type)
 

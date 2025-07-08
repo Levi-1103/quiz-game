@@ -1,4 +1,4 @@
-import type { QuizQuestion } from "./quiz";
+import type { Player, QuizQuestion } from "./quiz";
 
 export enum PacketCode {
   Connect = "connect",
@@ -7,6 +7,7 @@ export enum PacketCode {
   ChangeGameState = "state",
   StartGame = "start",
   Tick = "tick",
+  PlayerJoin = "join"
 }
 
 export enum GameState {
@@ -37,10 +38,15 @@ interface TickData {
   tick: number;
 }
 
-export type Packet
-  = | { code: PacketCode.Connect; data: ConnectPacketData }
-    | { code: PacketCode.Host; data: HostGamePacketData }
-    | { code: PacketCode.QuestionShow; data: QuestionShowPacketData }
-    | { code: PacketCode.ChangeGameState; data: ChangeGameStateData }
-    | { code: PacketCode.StartGame }
-    | { code: PacketCode.Tick; data: TickData };
+interface PlayerJoin {
+  player: Player
+}
+
+export type Packet =
+  | { code: PacketCode.Connect; data: ConnectPacketData }
+  | { code: PacketCode.Host; data: HostGamePacketData }
+  | { code: PacketCode.QuestionShow; data: QuestionShowPacketData }
+  | { code: PacketCode.ChangeGameState; data: ChangeGameStateData }
+  | { code: PacketCode.StartGame }
+  | { code: PacketCode.Tick; data: TickData }
+  | { code: PacketCode.PlayerJoin; data: PlayerJoin }

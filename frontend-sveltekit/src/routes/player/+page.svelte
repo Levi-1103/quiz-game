@@ -1,3 +1,7 @@
+<script>
+    import PlayerView from "$lib/components/PlayerView.svelte";
+
+</script>
 <!-- <script lang="ts">
     import QuizCard from "$lib/components/QuizCard.svelte";
     import { GameState, type Packet, PacketCode } from "$lib/model/net";
@@ -148,3 +152,9 @@
 
 <style>
 </style> -->
+
+<main>
+  <h1>Quiz App</h1>
+
+  <PlayerView/>
+</main>

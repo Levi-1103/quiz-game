@@ -68,7 +68,7 @@ func (g *Game) OnPlayerJoin(name string, connection *websocket.Conn) {
 }
 
 func (g *Game) Start() {
-	g.ChangeState(PlayState, PacketStartGame)
+	g.ChangeState(PlayState, PacketChangeGameState)
 	g.netService.SendPacket(g.Host, PacketQuestionShow, QuestionShowPacket{
 		Question: entity.QuizQuestion{
 			Name: "What is 2 + 2?",
@@ -88,6 +88,8 @@ func (g *Game) Start() {
 			},
 		},
 	})
+
+	// fmt.Println("GAME START")
 
 	go func() {
 		for {

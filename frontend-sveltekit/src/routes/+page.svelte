@@ -1,3 +1,6 @@
+<script>
+  
+</script>
 <h1>Quiz Game</h1>
 <nav>
     <a href="/host">Host a Game</a>

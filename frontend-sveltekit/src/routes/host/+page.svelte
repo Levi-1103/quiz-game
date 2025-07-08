@@ -1,14 +1,10 @@
 <script lang="ts">
-    import QuizCard from "$lib/components/QuizCard.svelte";
-    import { GameState, type Packet, PacketCode } from "$lib/model/net";
-    import type { Quiz, QuizQuestion } from "$lib/model/quiz";
-    import { NetService } from "$lib/services/net";
+    import HostQuizListView from "$lib/components/HostQuizListView.svelte";
+    import HostView from "$lib/components/HostView.svelte";
+  import { GameState, type Packet, PacketCode } from "$lib/model/net";
+  import type { Quiz, QuizQuestion } from "$lib/model/quiz";
+  import { NetService } from "$lib/services/net";
 
- 
-
-  let currentQuestion: QuizQuestion | null = null;
-
-  let quizzes:Quiz[] = [];
   let code = "";
   let name = "";
   const msg = "";
@@ -16,46 +12,33 @@
   let host = false;
   let tick = 0;
 
-  async function getQuizzes() {
-    const response = await fetch("http://localhost:3000/api/quizzes");
-    if (!response.ok) {
-      console.error(response);
-      return;
-    }
-    const json = await response.json();
-
-    quizzes = json;
-  }
-
-  getQuizzes();
-
   const netService = new NetService();
   netService.connect();
   netService.onPacket((packet: Packet) => {
     // eslint-disable-next-line no-console
     console.log(packet);
 
-    switch (packet.code) {
-      case PacketCode.QuestionShow: {
-        currentQuestion = packet.data.question;
-        break;
-      }
-      case PacketCode.ChangeGameState: {
-        let data = packet.data;
-        console.log("Game State", data.state);
-        state = data.state;
-        break;
-      }
-      case PacketCode.StartGame: {
-        console.log("Start Game");
-        state = GameState.PlayState;
-        break;
-      }
-      case PacketCode.Tick: {
-        let data = packet.data;
-        tick = data.tick
-      }
-    }
+    //   switch (packet.code) {
+    //     case PacketCode.QuestionShow: {
+    //       currentQuestion = packet.data.question;
+    //       break;
+    //     }
+    //     case PacketCode.ChangeGameState: {
+    //       let data = packet.data;
+    //       console.log("Game State", data.state);
+    //       state = data.state;
+    //       break;
+    //     }
+    //     case PacketCode.StartGame: {
+    //       console.log("Start Game");
+    //       state = GameState.PlayState;
+    //       break;
+    //     }
+    //     case PacketCode.Tick: {
+    //       let data = packet.data;
+    //       tick = data.tick
+    //     }
+    //   }
   });
 
   function startGame() {
@@ -64,31 +47,31 @@
     });
   }
 
-  
+  // function connect() {
+  //   netService.sendPacket({
+  //     code: PacketCode.Connect,
+  //     data: {
+  //       name: name,
+  //       code: code,
+  //     },
+  //   });
+  // }
 
-  function connect() {
-    netService.sendPacket({
-      code: PacketCode.Connect,
-      data: {
-        name: name,
-        code: code,
-      },
-    });
-  }
-
-  function hostQuiz(quiz) {
-    host = true;
-    netService.sendPacket({
-      code: PacketCode.Host,
-      data: {
-        quizId: quiz.id,
-      },
-    });
-  }
+  // function hostQuiz(quiz) {
+  //   host = true;
+  //   netService.sendPacket({
+  //     code: PacketCode.Host,
+  //     data: {
+  //       quizId: quiz.id,
+  //     },
+  //   });
+  // }
 </script>
 
 <main>
   <h1>Quiz App</h1>
+
+  <HostView/>
 
   {#if state === -1}
     <div class="flex gap-4 items-center p-2">
@@ -108,12 +91,8 @@
         placeholder="Player Name"
         bind:value={name}
       />
-      <button class="btn preset-filled" onclick={connect}>Join Game </button>
+      <button class="btn preset-filled" onclick={undefined}>Join Game </button>
     </div>
-
-    {#each quizzes as quiz}
-      <QuizCard {quiz} host={() => hostQuiz(quiz)} />
-    {/each}
   {:else if state === GameState.LobbyState}
     {#if host}
       <button class="btn preset-filled" onclick={startGame}>StartGame</button>
@@ -122,9 +101,9 @@
     {/if}
   {:else if state === GameState.PlayState}
     {#if host}
-    <p>HOST</p>
+      <p>HOST</p>
       <p>Clock: {tick}</p>
-      {#if currentQuestion != null}
+      <!-- {#if currentQuestion != null}
         <div class="card p-4 m-2 preset-filled flex flex-col text-center gap-4">
           <h2 class="text-lg p-2">{currentQuestion.name}</h2>
           <div class="flex justify-around gap-4">
@@ -135,10 +114,7 @@
             {/each}
           </div>
         </div>
-      {/if}
+      {/if} -->
     {/if}
   {/if}
 </main>
-
-<style>
-</style>
