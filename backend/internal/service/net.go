@@ -3,23 +3,27 @@ package service
 import (
 	"backend/internal/entity"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"time"
 
 	"github.com/gofiber/contrib/websocket"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type NetService struct {
 	quizService *QuizService
-	host        *websocket.Conn
-	tick        int
+	games       []*Game
 }
 
 func Net(quizService *QuizService) *NetService {
 	return &NetService{
 		quizService: quizService,
+		games:       []*Game{},
 	}
+}
+
+type Packet struct {
+	Type string          `json:"code"`
+	Data json.RawMessage `json:"data"`
 }
 
 type ConnectPacket struct {
@@ -35,101 +39,131 @@ type QuestionShowPacket struct {
 	Question entity.QuizQuestion `json:"question"`
 }
 
+type ChangeGameStatePacket struct {
+	State GameState `json:"state"`
+}
+type StartGamePacket struct {
+}
+
+type TickPacket struct {
+	Tick int `json:"tick"`
+}
+
+const (
+	PacketConnect         = "connect"
+	PacketHost            = "host"
+	PacketQuestionShow    = "question"
+	PacketChangeGameState = "state"
+	PacketStartGame       = "start"
+	PacketTick            = "tick"
+)
+
 func (c *NetService) OnIncomingMessage(con *websocket.Conn, mt int, msg []byte) {
 
-	if len(msg) < 2 {
+	var base Packet
+
+	err := json.Unmarshal(msg, &base)
+	if err != nil {
+		fmt.Println("Invalid base packet", err)
 		return
 	}
 
-	packetId := msg[0]
-	data := msg[1:]
-
-	packet := c.packetIdToPacket(packetId)
-	if packet == nil {
-		return
-
-	}
-	err := json.Unmarshal(data, &packet)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	switch packet := packet.(type) {
-	case *ConnectPacket:
-		{
-			fmt.Println(packet.Name, "wants to join the game", packet.Code)
-			break
+	switch base.Type {
+	case "connect":
+		var connectPacket ConnectPacket
+		var err = json.Unmarshal(base.Data, &connectPacket)
+		if err != nil {
+			fmt.Println("Problem with packet")
+			return
 		}
-	case *HostGamePacket:
-		{
-			fmt.Println("User wants to host quiz", packet.QuizId)
-			go func() {
-				time.Sleep(time.Second * 2)
-				c.SendPacket(con, QuestionShowPacket{
-					Question: entity.QuizQuestion{
-						Name: "What is 2 + 2?",
-						Choices: []entity.QuizChoice{
-							{
-								Name: "4",
-							},
-							{
-								Name: "9",
-							},
-						},
-					},
-				})
-			}()
-			break
-
+		game := c.getGameByCode(connectPacket.Code)
+		if game == nil {
+			return
 		}
-	}
+		game.OnPlayerJoin(connectPacket.Name, con)
 
+	case "host":
+
+		var hostGamePacket HostGamePacket
+		var err = json.Unmarshal(base.Data, &hostGamePacket)
+		if err != nil {
+			fmt.Println("Problem with packet")
+			return
+		}
+
+		quizId, err := primitive.ObjectIDFromHex(hostGamePacket.QuizId)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		quiz, err := c.quizService.quizCollection.GetQuizById(quizId)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		if quiz == nil {
+			return
+		}
+
+		newGame := newGame(*quiz, con, c)
+
+		fmt.Println("User wants to host quiz", newGame.Code)
+
+		c.games = append(c.games, &newGame)
+		c.SendPacket(con, PacketChangeGameState, ChangeGameStatePacket{
+			State: LobbyState,
+		})
+
+	case "start":
+
+		game := c.getGameByHost(con)
+		if game == nil {
+			return
+		}
+		game.Start()
+
+	default:
+		fmt.Println("Unknown packet type:", base.Type)
+
+	}
 }
 
-func (c *NetService) PacketToBytes(packet any) ([]byte, error) {
-	packetId, err := c.packetToPacketId(packet)
-	if err != nil {
-		return nil, err
-	}
-
-	bytes, err := json.Marshal(packet)
-	if err != nil {
-		return nil, err
-	}
-
-	final := append([]byte{packetId}, bytes...)
-	return final, nil
-}
-
-func (c *NetService) SendPacket(connection *websocket.Conn, packet any) error {
-	bytes, err := c.PacketToBytes(packet)
-	if err != nil {
-		return err
-	}
-	return connection.WriteMessage(websocket.BinaryMessage, bytes)
-}
-
-func (c *NetService) packetIdToPacket(packetId uint8) any {
-	switch packetId {
-	case 0:
-		{
-			return &ConnectPacket{}
+func (c *NetService) getGameByHost(host *websocket.Conn) *Game {
+	for _, game := range c.games {
+		if game.Host == host {
+			return game
 		}
-	case 1:
-		{
-			return &HostGamePacket{}
+	}
+
+	return nil
+}
+
+func (c *NetService) getGameByCode(code string) *Game {
+	for _, game := range c.games {
+		if game.Code == code {
+			return game
 		}
 	}
 	return nil
 }
 
-func (c *NetService) packetToPacketId(packet any) (uint8, error) {
-	switch packet.(type) {
-	case QuestionShowPacket:
-		{
-			return 2, nil
-		}
+func (c *NetService) SendPacket(connection *websocket.Conn, code string, payload interface{}) error {
+	data, err := json.Marshal(payload)
+	if err != nil {
+		return err
 	}
-	return 0, errors.New("invalid packet type")
+
+	packet := Packet{
+		Type: code,
+		Data: data,
+	}
+
+	msg, err := json.Marshal(packet)
+	if err != nil {
+		return err
+	}
+
+	return connection.WriteMessage(websocket.TextMessage, msg)
 }
