@@ -14,7 +14,10 @@ export class HostGame {
     constructor() {
         this.net = new NetService();
         this.net.connect();
-        this.net.onPacket(p => this.onPacket(p));
+        this.net.onPacket(p => {
+            console.log(p)
+            this.onPacket(p)
+        });
     }
     onPacket(packet: Packet) {
         switch (packet.code) {
@@ -23,7 +26,6 @@ export class HostGame {
                 gameState.set(data.state)
                 break;
             }
-            
             case PacketCode.PlayerJoin: {
                 let data = packet.data;
                 players.update(p => [...p, data.player]);

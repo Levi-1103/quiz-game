@@ -4,9 +4,10 @@
   let code = "";
   let name = "";
   export let game:PlayerGame;
-  export let join;
+  export let onJoin;
 
   function joinGame(){
+    onJoin()
     game.join(code, name);
   }
 </script>

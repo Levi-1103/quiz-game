@@ -49,6 +49,10 @@ type TickPacket struct {
 	Tick int `json:"tick"`
 }
 
+type PlayerJoinPacket struct {
+	Player Player `json:"player"`
+}
+
 const (
 	PacketConnect         = "connect"
 	PacketHost            = "host"
@@ -56,6 +60,7 @@ const (
 	PacketChangeGameState = "state"
 	PacketStartGame       = "start"
 	PacketTick            = "tick"
+	PacketPlayerJoin      = "join"
 )
 
 func (c *NetService) OnIncomingMessage(con *websocket.Conn, mt int, msg []byte) {

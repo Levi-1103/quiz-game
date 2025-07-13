@@ -16,7 +16,7 @@ type Game struct {
 	Quiz    entity.Quiz
 	Code    string
 	State   GameState
-	Players []Player
+	Players []*Player
 	Time    int
 
 	Host       *websocket.Conn
@@ -33,8 +33,9 @@ const (
 )
 
 type Player struct {
-	Name       string
-	Connection *websocket.Conn
+	Id         uuid.UUID       `json:"id"`
+	Name       string          `json:"name"`
+	Connection *websocket.Conn `json:"-"`
 }
 
 func generateCode() string {
@@ -47,7 +48,7 @@ func newGame(quiz entity.Quiz, host *websocket.Conn, netservice *NetService) Gam
 		Quiz:    quiz,
 		Code:    generateCode(),
 		State:   LobbyState,
-		Players: []Player{},
+		Players: []*Player{},
 		Time:    60,
 
 		Host:       host,
@@ -56,15 +57,27 @@ func newGame(quiz entity.Quiz, host *websocket.Conn, netservice *NetService) Gam
 }
 
 func (g *Game) OnPlayerJoin(name string, connection *websocket.Conn) {
+
 	fmt.Println(name, "joined the game")
-	g.Players = append(g.Players, Player{
+
+	player := Player{
+		Id:         uuid.New(),
 		Name:       name,
 		Connection: connection,
-	})
+	}
+	g.Players = append(g.Players, &player)
 
 	g.netService.SendPacket(connection, PacketChangeGameState, ChangeGameStatePacket{
 		State: g.State,
 	})
+
+	g.netService.SendPacket(g.Host, PacketPlayerJoin, PlayerJoinPacket{
+		Player: player,
+	})
+
+	for _, v := range g.Players {
+		fmt.Println(v.Name)
+	}
 }
 
 func (g *Game) Start() {
