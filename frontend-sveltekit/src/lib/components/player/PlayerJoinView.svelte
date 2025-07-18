@@ -12,7 +12,8 @@
   }
 </script>
 
-<div class="flex gap-4 items-center p-2">
+<div class="flex flex-col gap-4 mt-10">
+  <h1 class="text-center text-5xl">Join Game</h1>
   <input class="input" type="text" placeholder="Game Code" bind:value={code} />
   <input
     class="input"

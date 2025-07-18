@@ -1,6 +1,7 @@
 <script lang="ts">
-    import HostQuizListView from "$lib/components/HostQuizListView.svelte";
-    import HostView from "$lib/components/HostView.svelte";
+    import HostView from "$lib/components/host/HostView.svelte";
+
+ 
   import { GameState, type Packet, PacketCode } from "$lib/model/net";
   import type { Quiz, QuizQuestion } from "$lib/model/quiz";
   import { NetService } from "$lib/services/net";
@@ -69,9 +70,8 @@
 </script>
 
 <main>
-  <h1>Quiz App</h1>
 
-  <div class="p-10 m-auto">
+  <div class="">
     <HostView/>
   </div>
 </main>

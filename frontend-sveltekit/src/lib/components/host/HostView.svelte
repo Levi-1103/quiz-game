@@ -21,11 +21,11 @@
     };
 </script>
 
-<button
+<!-- <button
     onclick={() => {
         console.log($gameState as GameState);
     }}>Game State Test</button
->
+> -->
 
 {#if active}
     {@const SvelteComponent = views[$gameState]}

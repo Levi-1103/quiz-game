@@ -1,5 +1,6 @@
 <script>
-  import PlayerView from "$lib/components/PlayerView.svelte";
+    import PlayerView from "$lib/components/player/PlayerView.svelte";
+
 </script>
 
 <!-- <script lang="ts">
@@ -153,10 +154,6 @@
 <style>
 </style> -->
 
-<main>
-  <h1>Quiz App</h1>
-
-  <div class="p-10 m-auto">
+<div>
     <PlayerView />
-  </div>
-</main>
+</div>

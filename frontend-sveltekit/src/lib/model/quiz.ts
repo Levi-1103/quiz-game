@@ -19,3 +19,5 @@ export interface QuizChoice {
   name: string;
   correct: boolean;
 }
+
+export const COLORS = ["bg-primary-950", "bg-secondary-950", "bg-tertiary-950", "bg-warning-950"];
