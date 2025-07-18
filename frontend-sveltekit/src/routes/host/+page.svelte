@@ -71,50 +71,7 @@
 <main>
   <h1>Quiz App</h1>
 
-  <HostView/>
-
-  {#if state === -1}
-    <div class="flex gap-4 items-center p-2">
-      <p>Message: {msg}</p>
-    </div>
-
-    <div class="flex gap-4 items-center p-2">
-      <input
-        class="input"
-        type="text"
-        placeholder="Game Code"
-        bind:value={code}
-      />
-      <input
-        class="input"
-        type="text"
-        placeholder="Player Name"
-        bind:value={name}
-      />
-      <button class="btn preset-filled" onclick={undefined}>Join Game </button>
-    </div>
-  {:else if state === GameState.LobbyState}
-    {#if host}
-      <button class="btn preset-filled" onclick={startGame}>StartGame</button>
-      <p>HOST</p>
-      <p>lobby State</p>
-    {/if}
-  {:else if state === GameState.PlayState}
-    {#if host}
-      <p>HOST</p>
-      <p>Clock: {tick}</p>
-      <!-- {#if currentQuestion != null}
-        <div class="card p-4 m-2 preset-filled flex flex-col text-center gap-4">
-          <h2 class="text-lg p-2">{currentQuestion.name}</h2>
-          <div class="flex justify-around gap-4">
-            {#each currentQuestion.choices as choice}
-              <div class="btn preset-filled-secondary-50-950">
-                {choice.name}
-              </div>
-            {/each}
-          </div>
-        </div>
-      {/if} -->
-    {/if}
-  {/if}
+  <div class="p-10 m-auto">
+    <HostView/>
+  </div>
 </main>
